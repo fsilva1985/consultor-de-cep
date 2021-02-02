@@ -1,76 +1,34 @@
 package main
 
 import (
-	"archive/zip"
-	"bufio"
 	"fmt"
-	"os"
-	"strconv"
-	"strings"
+	"time"
 
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
+	"github.com/fsilva1985/consultor-de-cep/importer"
+	"github.com/fsilva1985/consultor-de-cep/model"
+	"github.com/fsilva1985/consultor-de-cep/zip"
 )
 
-type City struct {
-	Id        uint `gorm:"primaryKey"`
-	StateCode string
-	Name      string
-}
-
 func main() {
+	db := model.Init()
 
-	pwd, _ := os.Getwd()
+	zipFile := zip.Open("/storage/eDNE_Basico.zip")
 
-	db, err := gorm.Open(sqlite.Open("database.sqlite"), &gorm.Config{})
-	if err != nil {
-		panic("failed to connect database")
-	}
-
-	db.AutoMigrate(&City{})
-
-	getContentFile(
-		pwd+"/eDNE_Basico.zip",
+	file := zip.ReadFile(
+		zipFile,
 		"Delimitado/LOG_LOCALIDADE.TXT",
-		db,
 	)
-}
 
-// getContentFile returns []byte
-func getContentFile(zipPath string, filepath string, db *gorm.DB) {
+	fmt.Println("Cidades Inicio", time.Now().Format("2006-01-02 15:04:05"))
+	importer.City(file, db)
+	fmt.Println("Cidades Fim", time.Now().Format("2006-01-02 15:04:05"))
 
-	read, _ := zip.OpenReader(zipPath)
+	file = zip.ReadFile(
+		zipFile,
+		"Delimitado/LOG_BAIRRO.TXT",
+	)
 
-	defer read.Close()
-
-	for _, file := range read.File {
-		if strings.Compare(file.Name, filepath) != 0 {
-			continue
-		}
-
-		buffer, _ := file.Open()
-
-		defer buffer.Close()
-
-		scanner := bufio.NewScanner(buffer)
-
-		for scanner.Scan() {
-			row := strings.Split(scanner.Text(), "@")
-
-			number, _ := strconv.ParseUint(row[0], 10, 32)
-			id := uint(number)
-
-			db.Clauses(clause.OnConflict{
-				Columns:   []clause.Column{{Name: "id"}},
-				DoUpdates: clause.AssignmentColumns([]string{"state_code", "name"}),
-			}).Create(&City{
-				Id:        id,
-				StateCode: row[1],
-				Name:      row[2],
-			})
-		}
-	}
-
-	fmt.Println("Cidades importadas.")
+	fmt.Println("Bairros Inicio", time.Now().Format("2006-01-02 15:04:05"))
+	importer.Neighborhood(file, db)
+	fmt.Println("Bairros Fim", time.Now().Format("2006-01-02 15:04:05"))
 }

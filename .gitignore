@@ -1,1 +1,2 @@
-database.sqlite
+model/database.sqlite
+model/database.sqlite-journal
