@@ -63,17 +63,17 @@ func GetStates() []State {
 		{Id: 22, Code: "RO", Name: "Rondônia"},
 		{Id: 23, Code: "RR", Name: "Roraima"},
 		{Id: 24, Code: "SC", Name: "Santa Catarina"},
-		{Id: 25, Code: "SP", Name: "São Paulo"},
 		{Id: 26, Code: "SE", Name: "Sergipe"},
 		{Id: 27, Code: "TO", Name: "Tocantins"},
+		{Id: 25, Code: "SP", Name: "São Paulo"},
 	}
 
 	return states
 }
 
-// Init returns *gorm.DB
-func Init() *gorm.DB {
-	db, err := gorm.Open(sqlite.Open("model/database.sqlite"), &gorm.Config{})
+// Initialize returns *gorm.DB
+func Initialize() *gorm.DB {
+	db, err := gorm.Open(sqlite.Open("database.sqlite"), &gorm.Config{})
 
 	if err != nil {
 		panic("failed to connect database")
