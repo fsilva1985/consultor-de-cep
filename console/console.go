@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-// GetDoneMessage returns string
-func GetDoneMessage(text string) string {
+// Messager returns string
+func Messager(text string) string {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
 

@@ -3,7 +3,6 @@ package importer
 import (
 	"bufio"
 	"fmt"
-	"runtime"
 	"strings"
 
 	"github.com/fsilva1985/consultor-de-cep/console"
@@ -16,44 +15,37 @@ import (
 // Address returns void
 func Address(buffer *bufio.Scanner, db *gorm.DB, stateCode string) {
 	var addresses []model.Address
+
+	i := 1
+
 	for buffer.Scan() {
 		row := strings.Split(buffer.Text(), "@")
 
 		addresses = append(addresses, model.Address{
-			Id:             parse.StringToUint(row[0]),
-			NeighborhoodId: parse.StringToUint(row[3]),
+			ID:             parse.StringToUint(row[0]),
+			NeighborhoodID: parse.StringToUint(row[3]),
 			Zipcode:        row[7],
 			Type:           row[8],
 			Name:           row[5],
 		})
+
+		if i == 1000 {
+			upsertAddress(addresses, db)
+			i = 1
+			addresses = nil
+		}
+
+		i++
 	}
 
-	var slices [][]model.Address = createAddressChunk(addresses, 100)
+	upsertAddress(addresses, db)
 
-	done := make(chan string)
-	go upsertAddress(slices, db, stateCode, done)
-	fmt.Println(<-done)
+	fmt.Println(console.Messager("Estado " + stateCode + " importados com sucesso"))
 }
 
-func upsertAddress(slices [][]model.Address, db *gorm.DB, stateCode string, done chan string) {
-	for _, slice := range slices {
-		db.Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: "id"}},
-			DoUpdates: clause.AssignmentColumns([]string{"neighborhood_id", "name"}),
-		}).Create(slice)
-	}
-	var m runtime.MemStats
-	runtime.ReadMemStats(&m)
-
-	done <- console.GetDoneMessage("Endereços do Estado " + stateCode + " importados")
-}
-
-// createAddressChunk returns [][]model.Address
-func createAddressChunk(arr []model.Address, limit int) [][]model.Address {
-	var slices [][]model.Address
-	for i := 0; i < len(arr); i += limit {
-		slices = append(slices, arr[i:i+limit])
-	}
-
-	return slices
+func upsertAddress(data []model.Address, db *gorm.DB) {
+	db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "id"}},
+		DoUpdates: clause.AssignmentColumns([]string{"neighborhood_id", "name"}),
+	}).Create(data)
 }

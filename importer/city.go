@@ -16,6 +16,8 @@ import (
 func City(buffer *bufio.Scanner, db *gorm.DB) {
 	var cities []model.City
 
+	i := 1
+
 	for buffer.Scan() {
 		row := strings.Split(buffer.Text(), "@")
 
@@ -24,35 +26,28 @@ func City(buffer *bufio.Scanner, db *gorm.DB) {
 		db.First(&state, "code = ?", row[1])
 
 		cities = append(cities, model.City{
-			Id:      parse.StringToUint(row[0]),
-			StateId: state.Id,
+			ID:      parse.StringToUint(row[0]),
+			StateID: state.ID,
 			Name:    row[2],
 		})
+
+		if i == 1000 {
+			upsertCity(cities, db)
+			i = 1
+			cities = nil
+		}
+
+		i++
 	}
 
-	var slices [][]model.City = createCityChunk(cities, 100)
+	upsertCity(cities, db)
 
-	done := make(chan string)
-	go upsertCity(slices, db, done)
-	fmt.Println(<-done)
+	fmt.Println(console.Messager("Cidades importados com sucesso"))
 }
 
-func upsertCity(slices [][]model.City, db *gorm.DB, done chan string) {
-	for _, slice := range slices {
-		db.Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: "id"}},
-			DoUpdates: clause.AssignmentColumns([]string{"state_id", "name"}),
-		}).Create(slice)
-	}
-	done <- console.GetDoneMessage("Cidades importados")
-}
-
-// createCityChunk returns [][]model.City
-func createCityChunk(arr []model.City, limit int) [][]model.City {
-	var slices [][]model.City
-	for i := 0; i < len(arr); i += limit {
-		slices = append(slices, arr[i:i+limit])
-	}
-
-	return slices
+func upsertCity(data []model.City, db *gorm.DB) {
+	db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "id"}},
+		DoUpdates: clause.AssignmentColumns([]string{"state_id", "name"}),
+	}).Create(data)
 }

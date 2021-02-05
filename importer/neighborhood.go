@@ -15,40 +15,36 @@ import (
 // Neighborhood returns void
 func Neighborhood(buffer *bufio.Scanner, db *gorm.DB) {
 	var neighborhoods []model.Neighborhood
+
+	i := 1
+
 	for buffer.Scan() {
 		row := strings.Split(buffer.Text(), "@")
 
 		neighborhoods = append(neighborhoods, model.Neighborhood{
-			Id:     parse.StringToUint(row[0]),
-			CityId: parse.StringToUint(row[2]),
+			ID:     parse.StringToUint(row[0]),
+			CityID: parse.StringToUint(row[2]),
 			Name:   row[3],
 		})
 
+		if i == 1000 {
+			upsertNeighborhood(neighborhoods, db)
+			i = 1
+			neighborhoods = nil
+		}
+
+		i++
+
 	}
 
-	var slices [][]model.Neighborhood = createNeighborhoodChunk(neighborhoods, 100)
+	upsertNeighborhood(neighborhoods, db)
 
-	done := make(chan string)
-	go upsertNeighborhood(slices, db, done)
-	fmt.Println(<-done)
+	fmt.Println(console.Messager("Bairros importados com sucesso"))
 }
 
-func upsertNeighborhood(slices [][]model.Neighborhood, db *gorm.DB, done chan string) {
-	for _, slice := range slices {
-		db.Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: "id"}},
-			DoUpdates: clause.AssignmentColumns([]string{"city_id", "name"}),
-		}).Create(slice)
-	}
-	done <- console.GetDoneMessage("Bairros importados")
-}
-
-// createNeighborhoodChunk returns [][]model.Neighborhood
-func createNeighborhoodChunk(arr []model.Neighborhood, limit int) [][]model.Neighborhood {
-	var slices [][]model.Neighborhood
-	for i := 0; i < len(arr); i += limit {
-		slices = append(slices, arr[i:i+limit])
-	}
-
-	return slices
+func upsertNeighborhood(data []model.Neighborhood, db *gorm.DB) {
+	db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "id"}},
+		DoUpdates: clause.AssignmentColumns([]string{"city_id", "name"}),
+	}).Create(data)
 }

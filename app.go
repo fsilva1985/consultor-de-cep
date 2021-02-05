@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"net/http"
@@ -30,17 +31,18 @@ func (a *App) Initialize() {
 }
 
 func (a *App) initializeRoutes() {
-	a.Router.HandleFunc("/address/{zipcode}", func(w http.ResponseWriter, r *http.Request) {
+	a.Router.HandleFunc("/api/address/{zipcode}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		var address model.Address
 
-		a.DB.First(&address, "Zipcode = ?", vars["zipcode"])
+		a.DB.Preload("Neighborhood.City.State").First(&address, "Zipcode = ?", vars["zipcode"])
 
-		handler.RespondWithJSON(w, http.StatusOK, address)
+		handler.RespondWithData(w, http.StatusOK, address)
 	}).Methods("GET")
 }
 
 // Run app
 func (a *App) Run(addr string) {
+	fmt.Println("Server Started")
 	log.Fatal(http.ListenAndServe(addr, a.Router))
 }

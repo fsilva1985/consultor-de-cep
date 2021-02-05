@@ -8,64 +8,67 @@ import (
 
 // State returns collection
 type State struct {
-	Id   uint
+	ID   uint
 	Code string
 	Name string
 }
 
 // City returns collection
 type City struct {
-	Id      uint
-	StateId uint
+	ID      uint
+	StateID uint
 	Name    string
+	State   State
 }
 
 // Neighborhood returns collection
 type Neighborhood struct {
-	Id     uint
-	CityId uint
+	ID     uint
+	CityID uint
 	Name   string
+	City   City
 }
 
 // Address returns collection
 type Address struct {
-	Id             uint
-	NeighborhoodId uint
+	ID             uint
+	NeighborhoodID uint
 	Zipcode        string
 	Type           string
 	Name           string
+	Neighborhood   Neighborhood
 }
 
 // GetStates returns collection
 func GetStates() []State {
 	var states = []State{
-		{Id: 1, Code: "AC", Name: "Acre"},
-		{Id: 2, Code: "AL", Name: "Alagoas"},
-		{Id: 3, Code: "AP", Name: "Amapá"},
-		{Id: 4, Code: "AM", Name: "Amazonas"},
-		{Id: 5, Code: "BA", Name: "Bahia"},
-		{Id: 6, Code: "CE", Name: "Ceará"},
-		{Id: 7, Code: "DF", Name: "Distrito Federal"},
-		{Id: 8, Code: "ES", Name: "Espírito Santo"},
-		{Id: 9, Code: "GO", Name: "Goiás"},
-		{Id: 10, Code: "MA", Name: "Maranhão"},
-		{Id: 11, Code: "MT", Name: "Mato Grosso"},
-		{Id: 12, Code: "MS", Name: "Mato Grosso do Sul"},
-		{Id: 13, Code: "MG", Name: "Minas Gerais"},
-		{Id: 14, Code: "PA", Name: "Pará"},
-		{Id: 15, Code: "PB", Name: "Paraíba"},
-		{Id: 16, Code: "PR", Name: "Paraná"},
-		{Id: 17, Code: "PE", Name: "Pernambuco"},
-		{Id: 18, Code: "PI", Name: "Piauí"},
-		{Id: 19, Code: "RJ", Name: "Rio de Janeiro"},
-		{Id: 20, Code: "RN", Name: "Rio Grande do Norte"},
-		{Id: 21, Code: "RS", Name: "Rio Grande do Sul"},
-		{Id: 22, Code: "RO", Name: "Rondônia"},
-		{Id: 23, Code: "RR", Name: "Roraima"},
-		{Id: 24, Code: "SC", Name: "Santa Catarina"},
-		{Id: 26, Code: "SE", Name: "Sergipe"},
-		{Id: 27, Code: "TO", Name: "Tocantins"},
-		{Id: 25, Code: "SP", Name: "São Paulo"},
+		{ID: 1, Code: "AC", Name: "Acre"},
+		{ID: 2, Code: "AL", Name: "Alagoas"},
+		{ID: 3, Code: "AP", Name: "Amapá"},
+		{ID: 4, Code: "AM", Name: "Amazonas"},
+		{ID: 5, Code: "BA", Name: "Bahia"},
+		{ID: 6, Code: "CE", Name: "Ceará"},
+		{ID: 7, Code: "DF", Name: "Distrito Federal"},
+		{ID: 8, Code: "ES", Name: "Espírito Santo"},
+		{ID: 9, Code: "GO", Name: "Goiás"},
+		{ID: 10, Code: "MA", Name: "Maranhão"},
+		{ID: 11, Code: "MT", Name: "Mato Grosso"},
+		{ID: 12, Code: "MS", Name: "Mato Grosso do Sul"},
+		{ID: 13, Code: "MG", Name: "Minas Gerais"},
+		{ID: 14, Code: "PA", Name: "Pará"},
+		{ID: 15, Code: "PB", Name: "Paraíba"},
+		{ID: 16, Code: "PR", Name: "Paraná"},
+		{ID: 17, Code: "PE", Name: "Pernambuco"},
+		{ID: 18, Code: "PI", Name: "Piauí"},
+		{ID: 19, Code: "RJ", Name: "Rio de Janeiro"},
+		{ID: 20, Code: "RN", Name: "Rio Grande do Norte"},
+		{ID: 21, Code: "RS", Name: "Rio Grande do Sul"},
+		{ID: 22, Code: "RO", Name: "Rondônia"},
+		{ID: 23, Code: "RR", Name: "Roraima"},
+		{ID: 24, Code: "SC", Name: "Santa Catarina"},
+		{ID: 25, Code: "SP", Name: "São Paulo"},
+		{ID: 26, Code: "SE", Name: "Sergipe"},
+		{ID: 27, Code: "TO", Name: "Tocantins"},
 	}
 
 	return states
