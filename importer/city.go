@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/djimenez/iconv-go"
 	"github.com/fsilva1985/consultor-de-cep/console"
 	"github.com/fsilva1985/consultor-de-cep/model"
 	"github.com/fsilva1985/consultor-de-cep/parse"
@@ -19,7 +20,10 @@ func City(buffer *bufio.Scanner, db *gorm.DB) {
 	i := 1
 
 	for buffer.Scan() {
-		row := strings.Split(buffer.Text(), "@")
+
+		stringer, _ := iconv.ConvertString(buffer.Text(), "windows-1252", "utf-8")
+
+		row := strings.Split(stringer, "@")
 
 		var state model.State
 

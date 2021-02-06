@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/djimenez/iconv-go"
 	"github.com/fsilva1985/consultor-de-cep/console"
 	"github.com/fsilva1985/consultor-de-cep/model"
 	"github.com/fsilva1985/consultor-de-cep/parse"
@@ -19,7 +20,9 @@ func Address(buffer *bufio.Scanner, db *gorm.DB, stateCode string) {
 	i := 1
 
 	for buffer.Scan() {
-		row := strings.Split(buffer.Text(), "@")
+		stringer, _ := iconv.ConvertString(buffer.Text(), "windows-1252", "utf-8")
+
+		row := strings.Split(stringer, "@")
 
 		addresses = append(addresses, model.Address{
 			ID:             parse.StringToUint(row[0]),
