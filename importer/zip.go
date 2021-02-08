@@ -2,7 +2,7 @@ package importer
 
 import (
 	"archive/zip"
-	"bufio"
+	"io"
 	"os"
 	"strings"
 )
@@ -10,25 +10,22 @@ import (
 // Open returns []byte
 func Open(zipPath string) *zip.ReadCloser {
 	pwd, _ := os.Getwd()
-
 	read, _ := zip.OpenReader(pwd + "/" + zipPath)
 
 	return read
 }
 
 // ReadFile returns *bufio.Scanner
-func ReadFile(read *zip.ReadCloser, filepath string) *bufio.Scanner {
-	var scanner *bufio.Scanner
+func ReadFile(read *zip.ReadCloser, filepath string) io.ReadCloser {
+	var file io.ReadCloser
 
-	for _, file := range read.File {
-		if strings.Compare(file.Name, filepath) != 0 {
+	for _, currentFile := range read.File {
+		if strings.Compare(currentFile.Name, filepath) != 0 {
 			continue
 		}
 
-		buffer, _ := file.Open()
-
-		scanner = bufio.NewScanner(buffer)
+		file, _ = currentFile.Open()
 	}
 
-	return scanner
+	return file
 }

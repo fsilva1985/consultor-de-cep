@@ -2,11 +2,11 @@ package importer
 
 import (
 	"bufio"
-	"fmt"
+	"io"
 	"strings"
+	"sync"
 
 	"github.com/djimenez/iconv-go"
-	"github.com/fsilva1985/consultor-de-cep/console"
 	"github.com/fsilva1985/consultor-de-cep/model"
 	"github.com/fsilva1985/consultor-de-cep/parse"
 	"gorm.io/gorm"
@@ -14,13 +14,17 @@ import (
 )
 
 // Address returns void
-func Address(buffer *bufio.Scanner, db *gorm.DB, stateCode string) {
+func Address(file io.ReadCloser, db *gorm.DB, stateCode string, wg *sync.WaitGroup) {
+
+	defer wg.Done()
+
 	var addresses []model.Address
 
 	i := 1
 
-	for buffer.Scan() {
-		stringer, _ := iconv.ConvertString(buffer.Text(), "windows-1252", "utf-8")
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		stringer, _ := iconv.ConvertString(scanner.Text(), "windows-1252", "utf-8")
 
 		row := strings.Split(stringer, "@")
 
@@ -42,8 +46,6 @@ func Address(buffer *bufio.Scanner, db *gorm.DB, stateCode string) {
 	}
 
 	upsertAddress(addresses, db)
-
-	fmt.Println(console.Messager("Estado " + stateCode + " importados com sucesso"))
 }
 
 func upsertAddress(data []model.Address, db *gorm.DB) {

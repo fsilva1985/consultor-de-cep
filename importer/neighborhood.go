@@ -3,6 +3,7 @@ package importer
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/djimenez/iconv-go"
@@ -14,13 +15,14 @@ import (
 )
 
 // Neighborhood returns void
-func Neighborhood(buffer *bufio.Scanner, db *gorm.DB) {
+func Neighborhood(file io.ReadCloser, db *gorm.DB) {
 	var neighborhoods []model.Neighborhood
 
 	i := 1
+	scanner := bufio.NewScanner(file)
 
-	for buffer.Scan() {
-		stringer, _ := iconv.ConvertString(buffer.Text(), "windows-1252", "utf-8")
+	for scanner.Scan() {
+		stringer, _ := iconv.ConvertString(scanner.Text(), "windows-1252", "utf-8")
 
 		row := strings.Split(stringer, "@")
 
@@ -37,7 +39,6 @@ func Neighborhood(buffer *bufio.Scanner, db *gorm.DB) {
 		}
 
 		i++
-
 	}
 
 	upsertNeighborhood(neighborhoods, db)

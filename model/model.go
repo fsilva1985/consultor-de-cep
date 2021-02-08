@@ -76,7 +76,7 @@ func GetStates() []State {
 
 // Initialize returns *gorm.DB
 func Initialize() *gorm.DB {
-	db, err := gorm.Open(sqlite.Open("database.sqlite"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
 
 	if err != nil {
 		panic("failed to connect database")

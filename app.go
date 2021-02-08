@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
-
 	"net/http"
 
-	"github.com/fsilva1985/consultor-de-cep/handler"
+	"github.com/Nhanderu/brdoc"
+	"github.com/fsilva1985/consultor-de-cep/httpResponse"
 	"github.com/fsilva1985/consultor-de-cep/importer"
 	"github.com/fsilva1985/consultor-de-cep/model"
 	"github.com/gorilla/mux"
@@ -31,13 +31,43 @@ func (a *App) Initialize() {
 }
 
 func (a *App) initializeRoutes() {
+
 	a.Router.HandleFunc("/api/address/{zipcode}", func(w http.ResponseWriter, r *http.Request) {
+		type Response struct {
+			Type         string `json:"type"`
+			Name         string `json:"name"`
+			Neighborhood string `json:"neighborhood"`
+			City         string `json:"city"`
+			State        string `json:"state"`
+		}
+
 		vars := mux.Vars(r)
+
+		if !brdoc.IsCEP(vars["zipcode"]) {
+			httpResponse.ResponseMessage(w, 422, "zipcode is not valid.")
+
+			return
+		}
+
 		var address model.Address
 
-		a.DB.Preload("Neighborhood.City.State").First(&address, "Zipcode = ?", vars["zipcode"])
+		err := a.DB.Preload("Neighborhood.City.State").First(&address, "Zipcode = ?", vars["zipcode"]).Error
 
-		handler.RespondWithData(w, http.StatusOK, address)
+		if err != nil {
+			httpResponse.ResponseMessage(w, 422, "zipcode is not found.")
+
+			return
+		}
+
+		m := Response{
+			Type:         address.Type,
+			Name:         address.Name,
+			Neighborhood: address.Neighborhood.Name,
+			City:         address.Neighborhood.City.Name,
+			State:        address.Neighborhood.City.State.Name,
+		}
+
+		httpResponse.ResponseData(w, http.StatusOK, m)
 	}).Methods("GET")
 }
 
