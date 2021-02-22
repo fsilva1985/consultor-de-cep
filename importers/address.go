@@ -1,4 +1,4 @@
-package importer
+package importers
 
 import (
 	"bufio"
@@ -7,8 +7,8 @@ import (
 	"sync"
 
 	"github.com/djimenez/iconv-go"
-	"github.com/fsilva1985/consultor-de-cep/model"
-	"github.com/fsilva1985/consultor-de-cep/parse"
+	"github.com/fsilva1985/consultor-de-cep/entities"
+	"github.com/fsilva1985/consultor-de-cep/parsers"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -18,7 +18,7 @@ func Address(file io.ReadCloser, db *gorm.DB, stateCode string, wg *sync.WaitGro
 
 	defer wg.Done()
 
-	var addresses []model.Address
+	var addresses []entities.Address
 
 	i := 1
 
@@ -28,9 +28,9 @@ func Address(file io.ReadCloser, db *gorm.DB, stateCode string, wg *sync.WaitGro
 
 		row := strings.Split(stringer, "@")
 
-		addresses = append(addresses, model.Address{
-			ID:             parse.StringToUint(row[0]),
-			NeighborhoodID: parse.StringToUint(row[3]),
+		addresses = append(addresses, entities.Address{
+			ID:             parsers.StringToUint(row[0]),
+			NeighborhoodID: parsers.StringToUint(row[3]),
 			Zipcode:        row[7],
 			Type:           row[8],
 			Name:           row[5],
@@ -48,7 +48,7 @@ func Address(file io.ReadCloser, db *gorm.DB, stateCode string, wg *sync.WaitGro
 	upsertAddress(addresses, db)
 }
 
-func upsertAddress(data []model.Address, db *gorm.DB) {
+func upsertAddress(data []entities.Address, db *gorm.DB) {
 	db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "id"}},
 		DoUpdates: clause.AssignmentColumns([]string{"neighborhood_id", "name"}),

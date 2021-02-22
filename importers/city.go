@@ -1,4 +1,4 @@
-package importer
+package importers
 
 import (
 	"bufio"
@@ -7,16 +7,15 @@ import (
 	"strings"
 
 	"github.com/djimenez/iconv-go"
-	"github.com/fsilva1985/consultor-de-cep/console"
-	"github.com/fsilva1985/consultor-de-cep/model"
-	"github.com/fsilva1985/consultor-de-cep/parse"
+	"github.com/fsilva1985/consultor-de-cep/entities"
+	"github.com/fsilva1985/consultor-de-cep/parsers"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 // City returns void
 func City(file io.ReadCloser, db *gorm.DB) {
-	var cities []model.City
+	var cities []entities.City
 
 	i := 1
 	scanner := bufio.NewScanner(file)
@@ -26,12 +25,12 @@ func City(file io.ReadCloser, db *gorm.DB) {
 
 		row := strings.Split(stringer, "@")
 
-		var state model.State
+		var state entities.State
 
 		db.First(&state, "code = ?", row[1])
 
-		cities = append(cities, model.City{
-			ID:      parse.StringToUint(row[0]),
+		cities = append(cities, entities.City{
+			ID:      parsers.StringToUint(row[0]),
 			StateID: state.ID,
 			Name:    row[2],
 		})
@@ -47,10 +46,10 @@ func City(file io.ReadCloser, db *gorm.DB) {
 
 	upsertCity(cities, db)
 
-	fmt.Println(console.Messager("Cidades importados com sucesso"))
+	fmt.Println("Cidades importados com sucesso")
 }
 
-func upsertCity(data []model.City, db *gorm.DB) {
+func upsertCity(data []entities.City, db *gorm.DB) {
 	db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "id"}},
 		DoUpdates: clause.AssignmentColumns([]string{"state_id", "name"}),

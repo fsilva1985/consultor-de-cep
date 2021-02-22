@@ -1,42 +1,10 @@
-package model
-
-import (
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
-)
+package entities
 
 // State returns collection
 type State struct {
 	ID   uint
 	Code string
 	Name string
-}
-
-// City returns collection
-type City struct {
-	ID      uint
-	StateID uint
-	Name    string
-	State   State
-}
-
-// Neighborhood returns collection
-type Neighborhood struct {
-	ID     uint
-	CityID uint
-	Name   string
-	City   City
-}
-
-// Address returns collection
-type Address struct {
-	ID             uint
-	NeighborhoodID uint
-	Zipcode        string
-	Type           string
-	Name           string
-	Neighborhood   Neighborhood
 }
 
 // GetStates returns collection
@@ -72,22 +40,4 @@ func GetStates() []State {
 	}
 
 	return states
-}
-
-// Initialize returns *gorm.DB
-func Initialize() *gorm.DB {
-	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
-
-	if err != nil {
-		panic("failed to connect database")
-	}
-
-	db.AutoMigrate(&State{}, &City{}, &Neighborhood{}, &Address{})
-
-	db.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "id"}},
-		DoUpdates: clause.AssignmentColumns([]string{"code", "name"}),
-	}).Create(GetStates())
-
-	return db
 }

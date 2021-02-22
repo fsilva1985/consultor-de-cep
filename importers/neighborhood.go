@@ -1,4 +1,4 @@
-package importer
+package importers
 
 import (
 	"bufio"
@@ -7,16 +7,15 @@ import (
 	"strings"
 
 	"github.com/djimenez/iconv-go"
-	"github.com/fsilva1985/consultor-de-cep/console"
-	"github.com/fsilva1985/consultor-de-cep/model"
-	"github.com/fsilva1985/consultor-de-cep/parse"
+	"github.com/fsilva1985/consultor-de-cep/entities"
+	"github.com/fsilva1985/consultor-de-cep/parsers"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 // Neighborhood returns void
 func Neighborhood(file io.ReadCloser, db *gorm.DB) {
-	var neighborhoods []model.Neighborhood
+	var neighborhoods []entities.Neighborhood
 
 	i := 1
 	scanner := bufio.NewScanner(file)
@@ -26,9 +25,9 @@ func Neighborhood(file io.ReadCloser, db *gorm.DB) {
 
 		row := strings.Split(stringer, "@")
 
-		neighborhoods = append(neighborhoods, model.Neighborhood{
-			ID:     parse.StringToUint(row[0]),
-			CityID: parse.StringToUint(row[2]),
+		neighborhoods = append(neighborhoods, entities.Neighborhood{
+			ID:     parsers.StringToUint(row[0]),
+			CityID: parsers.StringToUint(row[2]),
 			Name:   row[3],
 		})
 
@@ -43,10 +42,10 @@ func Neighborhood(file io.ReadCloser, db *gorm.DB) {
 
 	upsertNeighborhood(neighborhoods, db)
 
-	fmt.Println(console.Messager("Bairros importados com sucesso"))
+	fmt.Println("Bairros importados com sucesso")
 }
 
-func upsertNeighborhood(data []model.Neighborhood, db *gorm.DB) {
+func upsertNeighborhood(data []entities.Neighborhood, db *gorm.DB) {
 	db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "id"}},
 		DoUpdates: clause.AssignmentColumns([]string{"city_id", "name"}),
